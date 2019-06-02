@@ -2,7 +2,13 @@
 
 (require data/queue)
 
-(provide make-node send-to receive restart shutdown lag random-drop)
+(provide (all-defined-out))
+
+
+;;; A link layer packet, it has a source, which is a node
+;;; and it has a destination which is a node.
+(struct packet
+        (src dst payload))
 
 ;; a node is a thread that executes one function `fn`
 ;; it is able to send and receive message
@@ -93,3 +99,15 @@
 (define (random-drop node enabled)
   (node 'random-drop enabled))
 
+;;; A simple implementation of a link layer packet 
+;;; receiving node, which forwards the packets to the given
+;;; function.
+(define (message-loop fn)
+  (λ (self)
+     (let loop
+       ((msg (receive self)))
+
+       (fn (packet-src msg)
+           (packet-payload msg))
+       (loop (receive self)))))
+   
